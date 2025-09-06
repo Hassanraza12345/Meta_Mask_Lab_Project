@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import Card from "../others/card";
+import Card from "../others/Card";
 import ai_integration_img from "../../assets/Ai_integration.jpg";
 import Digital_transformation from "../../assets/Digital_transformatio.jpg";
 import Crypto_Awareness from "../../assets/Crypto_Awareness.jpg";
