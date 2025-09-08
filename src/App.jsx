@@ -1,4 +1,5 @@
-import { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import Nav from "./components/Nav/Nav";
 import Hero from "./components/hero/Hero";
 import AboutUs from "./components/AboutUs/AboutUs";
@@ -19,21 +20,28 @@ function App() {
   const Contact_ref = useRef(null);
 
   const [activeSection, setActiveSection] = useState("hero");
+  const [isScrolling, setIsScrolling] = useState(false);
 
-  // Smooth scroll
+  // Smooth scroll function
   const scrollToSection = (sectionRef) => {
     if (sectionRef && sectionRef.current) {
+      setIsScrolling(true);
       sectionRef.current.scrollIntoView({
         behavior: "smooth",
         block: "start",
       });
+      
+      // Reset scrolling flag after a delay
+      setTimeout(() => setIsScrolling(false), 1000);
     }
   };
 
   // Track scroll position to highlight active section
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPosition = window.scrollY + 120; // offset for navbar
+      if (isScrolling) return; // Skip if we're programmatically scrolling
+      
+      const scrollPosition = window.scrollY + 100; // Slightly reduced offset
 
       const heroPosition = Hero_ref.current?.offsetTop || 0;
       const aboutPosition = About_ref.current?.offsetTop || 0;
@@ -60,9 +68,10 @@ function App() {
       }
     };
 
-    window.addEventListener("scroll", handleScroll);
+    // Use passive scroll listener for better performance
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isScrolling]);
 
   return (
     <>
@@ -80,31 +89,73 @@ function App() {
 
       {/* Sections */}
       <div ref={Hero_ref}>
-        <Hero Services_ref={Services_ref} BookNow_ref={Contact_ref} />
+        <Hero Services_ref={Services_ref} BookNow_ref={Contact_ref} scrollToSection={scrollToSection} />
       </div>
 
       <div ref={About_ref}>
-        <AboutUs />
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          viewport={{ once: true }}
+        >
+          <AboutUs />
+        </motion.div>
       </div>
 
       <div ref={Services_ref}>
-        <Services />
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          viewport={{ once: true }}
+        >
+          <Services />
+        </motion.div>
       </div>
 
-      <div>
-        <WhyChooseUs />
+      <div ref={WhyChooseUs_ref}>
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          viewport={{ once: true }}
+        >
+          <WhyChooseUs />
+        </motion.div>
       </div>
 
-      <div >
-        <Testimonials />
+      <div ref={Testimonials_ref}>
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          viewport={{ once: true }}
+        >
+          <Testimonials />
+        </motion.div>
       </div>
 
-      <div>
-        <CallToAction />
+      <div ref={CallToAction_ref}>
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          viewport={{ once: true }}
+        >
+          <CallToAction />
+        </motion.div>
       </div>
 
       <div ref={Contact_ref}>
-        <ContactSection />
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          viewport={{ once: true }}
+        >
+          <ContactSection />
+        </motion.div>
       </div>
     </>
   );

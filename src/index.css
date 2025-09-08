@@ -1,8 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@600&display=swap');
 @import "tailwindcss";
 
+/* @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@600&display=swap'); */
 
-/* Apply Montserrat to everything */
 * {
   font-family: 'Montserrat', sans-serif;
 }

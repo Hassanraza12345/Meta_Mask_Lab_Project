@@ -80,7 +80,9 @@ export default function ParticleCanvas() {
 
           if (dist < maxDistance) {
             ctx.beginPath();
-            ctx.strokeStyle = "rgba(255,255,255,0.2)";
+            ctx.shadowColor = "#00f0ff";
+            ctx.shadowBlur = 8;
+            ctx.strokeStyle = "rgba(0,240,255,0.5)";
             ctx.lineWidth = 1;
             ctx.moveTo(particles[a].x, particles[a].y);
             ctx.lineTo(particles[b].x, particles[b].y);
