@@ -52,7 +52,7 @@ const ContactSection = () => {
               </h3>
 
               <div className="space-y-6">
-                {/* Email */}
+                {/* Emails */}
                 <div className="flex items-start">
                   <div className="bg-blue-500/20 p-3 rounded-lg mr-4">
                     <svg
@@ -70,12 +70,30 @@ const ContactSection = () => {
                     </svg>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-200">Email</h4>
+                    <h4 className="font-semibold text-gray-200">Emails</h4>
                     <a
                       href="mailto:info@metameshlabs.com"
-                      className="text-blue-300 hover:text-cyan-200"
+                      className="block text-blue-300 hover:text-cyan-200"
                     >
                       info@metameshlabs.com
+                    </a>
+                    <a
+                      href="mailto:Sydra@metameshlabs.com"
+                      className="block text-blue-300 hover:text-cyan-200"
+                    >
+                      Sydra@metameshlabs.com
+                    </a>
+                    <a
+                      href="mailto:Bookforacall@metameshlabs.com"
+                      className="block text-blue-300 hover:text-cyan-200"
+                    >
+                      Bookforacall@metameshlabs.com
+                    </a>
+                    <a
+                      href="mailto:zk@metameshlabs.com"
+                      className="block text-blue-300 hover:text-cyan-200"
+                    >
+                      zk@metameshlabs.com
                     </a>
                   </div>
                 </div>
@@ -112,15 +130,24 @@ const ContactSection = () => {
                 <div>
                   <h4 className="font-semibold text-gray-200 mb-2">Socials</h4>
                   <div className="flex space-x-4">
-                    {[linkedin, facebook, instagram].map((icon, idx) => (
-                      <a
-                        key={idx}
-                        href="#"
-                        className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-500/20 hover:bg-blue-500/40 transition-all shadow-[0_0_10px_rgba(3,114,250,0.6)]"
-                      >
-                        <img src={icon} alt="social" className="h-5 w-5" />
-                      </a>
-                    ))}
+                    <a
+                      href="https://www.instagram.com/metameshlabs?igsh=MWp3YW13aDJ2YXI2Zw=="
+                      className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-500/20 hover:bg-blue-500/40 transition-all shadow-[0_0_10px_rgba(3,114,250,0.6)]"
+                    >
+                      <img src={instagram} alt="Instagram" className="h-5 w-5" />
+                    </a>
+                    <a
+                      href="https://www.linkedin.com/company/metameshlabs"
+                      className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-500/20 hover:bg-blue-500/40 transition-all shadow-[0_0_10px_rgba(3,114,250,0.6)]"
+                    >
+                      <img src={linkedin} alt="LinkedIn" className="h-5 w-5" />
+                    </a>
+                    <a
+                      href="https://www.facebook.com/metameshlabs"
+                      className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-500/20 hover:bg-blue-500/40 transition-all shadow-[0_0_10px_rgba(3,114,250,0.6)]"
+                    >
+                      <img src={facebook} alt="Facebook" className="h-5 w-5" />
+                    </a>
                   </div>
                 </div>
 
