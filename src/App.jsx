@@ -18,6 +18,50 @@ const LoadingPlaceholder = () => (
   </div>
 );
 
+// Custom hook for mobile detection
+const useMobileDetect = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkIsMobile = () => {
+      const userAgent = navigator.userAgent;
+      const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+      return mobileRegex.test(userAgent) || window.innerWidth <= 768;
+    };
+    
+    setIsMobile(checkIsMobile());
+    
+    const handleResize = () => {
+      setIsMobile(checkIsMobile());
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return isMobile;
+};
+
+// LazyImage component for optimized image loading
+const LazyImage = ({ src, alt, className }) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  return (
+    <>
+      {!isLoaded && (
+        <div className={`bg-gray-200 animate-pulse ${className}`}></div>
+      )}
+      <img
+        src={src}
+        alt={alt}
+        className={`${className} ${isLoaded ? 'block' : 'hidden'}`}
+        loading="lazy"
+        onLoad={() => setIsLoaded(true)}
+      />
+    </>
+  );
+};
+
 // ✅ Memoized components to prevent unnecessary re-renders
 const MemoizedNav = memo(Nav);
 const MemoizedHero = memo(Hero);
@@ -42,6 +86,7 @@ function App() {
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollTimeout = useRef(null);
   const [isMounted, setIsMounted] = useState(false);
+  const isMobile = useMobileDetect();
 
   // Section configuration for easier management
   const sectionsConfig = [
@@ -63,10 +108,18 @@ function App() {
   const scrollToSection = useCallback((sectionRef) => {
     if (sectionRef && sectionRef.current) {
       setIsScrolling(true);
-      sectionRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
+      
+      // Use a more performant scroll method for mobile
+      if (isMobile) {
+        const yOffset = -80; // Adjust for fixed header
+        const y = sectionRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      } else {
+        sectionRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
 
       // Clear any existing timeout
       if (scrollTimeout.current) {
@@ -76,7 +129,7 @@ function App() {
       // Reset scrolling flag after scroll completes
       scrollTimeout.current = setTimeout(() => setIsScrolling(false), 800);
     }
-  }, []);
+  }, [isMobile]);
 
   // Optimized scroll tracking with throttling
   useEffect(() => {
@@ -87,7 +140,8 @@ function App() {
 
     const handleScroll = () => {
       const currentTime = Date.now();
-      const scrollThrottle = 100; // ms
+      // Use more aggressive throttling on mobile
+      const scrollThrottle = isMobile ? 200 : 100;
       
       // Throttle scroll events
       if (currentTime - lastCallTime < scrollThrottle) {
@@ -130,7 +184,7 @@ function App() {
         clearTimeout(scrollTimeout.current);
       }
     };
-  }, [isScrolling, sectionsConfig, isMounted]);
+  }, [isScrolling, sectionsConfig, isMounted, isMobile]);
 
   // Don't render until mounted to avoid CSP issues
   if (!isMounted) {
@@ -141,9 +195,22 @@ function App() {
     );
   }
 
+  // Simplified animations for mobile
+  const mobileAnimationProps = isMobile ? {
+    initial: { opacity: 0 },
+    whileInView: { opacity: 1 },
+    transition: { duration: 0.5 },
+    viewport: { once: true, margin: "-50px" }
+  } : {
+    initial: { opacity: 0, y: 40 },
+    whileInView: { opacity: 1, y: 0 },
+    transition: { duration: 0.7, ease: "easeOut" },
+    viewport: { once: true, margin: "-100px" }
+  };
+
   return (
     <React.Suspense fallback={<LoadingPlaceholder />}>
-      {/* Fixed Navbar */}
+      {/* Fixed Navbar - simplified for mobile */}
       <div className="top-0 w-full h-max-10 fixed z-50">
         <MemoizedNav
           Hero_ref={hero_ref}
@@ -152,6 +219,7 @@ function App() {
           Contact_ref={contact_ref}
           scrollToSection={scrollToSection}
           activeSection={activeSection}
+          isMobile={isMobile}
         />
       </div>
 
@@ -161,74 +229,45 @@ function App() {
           Services_ref={services_ref}
           BookNow_ref={contact_ref}
           scrollToSection={scrollToSection}
+          isMobile={isMobile}
         />
       </div>
 
       {/* ✅ LazyMotion wraps all animated sections */}
       <LazyMotion features={domAnimation}>
         <div ref={about_ref}>
-          <m.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-            viewport={{ once: true, margin: "-100px" }}
-          >
-            <MemoizedAboutUs />
+          <m.div {...mobileAnimationProps}>
+            <MemoizedAboutUs isMobile={isMobile} LazyImage={LazyImage} />
           </m.div>
         </div>
 
         <div ref={services_ref}>
-          <m.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-            viewport={{ once: true, margin: "-100px" }}
-          >
-            <MemoizedServices />
+          <m.div {...mobileAnimationProps}>
+            <MemoizedServices isMobile={isMobile} LazyImage={LazyImage} />
           </m.div>
         </div>
 
         <div ref={whychooseus_ref}>
-          <m.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-            viewport={{ once: true, margin: "-100px" }}
-          >
-            <MemoizedWhyChooseUs />
+          <m.div {...mobileAnimationProps}>
+            <MemoizedWhyChooseUs isMobile={isMobile} LazyImage={LazyImage} />
           </m.div>
         </div>
 
         <div ref={testimonials_ref}>
-          <m.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-            viewport={{ once: true, margin: "-100px" }}
-          >
-            <MemoizedTestimonials />
+          <m.div {...mobileAnimationProps}>
+            <MemoizedTestimonials isMobile={isMobile} LazyImage={LazyImage} />
           </m.div>
         </div>
 
         <div ref={calltoaction_ref}>
-          <m.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-            viewport={{ once: true, margin: "-100px" }}
-          >
-            <MemoizedCallToAction />
+          <m.div {...mobileAnimationProps}>
+            <MemoizedCallToAction isMobile={isMobile} LazyImage={LazyImage} />
           </m.div>
         </div>
 
         <div ref={contact_ref}>
-          <m.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-            viewport={{ once: true, margin: "-100px" }}
-          >
-            <MemoizedContactSection />
+          <m.div {...mobileAnimationProps}>
+            <MemoizedContactSection isMobile={isMobile} LazyImage={LazyImage} />
           </m.div>
         </div>
       </LazyMotion>
