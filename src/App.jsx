@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import React, { useRef, useEffect, useState, memo } from "react";
+import { LazyMotion, domAnimation, m } from "framer-motion";
 import Nav from "./components/Nav/Nav";
 import Hero from "./components/hero/Hero";
 import AboutUs from "./components/AboutUs/AboutUs";
@@ -8,6 +8,9 @@ import WhyChooseUs from "./components/WhyChooseUs/WhyChooseUs";
 import Testimonials from "./components/Testimonials/Testimonials";
 import CallToAction from "./components/CallToAction/CallToAction";
 import ContactSection from "./components/ContactSection/ContactSection";
+
+// ✅ Memoized Nav so it doesn't re-render on scroll
+const MemoizedNav = memo(Nav);
 
 function App() {
   // Refs for sections
@@ -30,45 +33,46 @@ function App() {
         behavior: "smooth",
         block: "start",
       });
-      
+
       // Reset scrolling flag after a delay
       setTimeout(() => setIsScrolling(false), 1000);
     }
   };
 
-  // Track scroll position to highlight active section
+  // Optimized scroll tracking with requestAnimationFrame
   useEffect(() => {
+    let ticking = false;
+
     const handleScroll = () => {
-      if (isScrolling) return; // Skip if we're programmatically scrolling
-      
-      const scrollPosition = window.scrollY + 100; // Slightly reduced offset
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          if (!isScrolling) {
+            const scrollPosition = window.scrollY + 100;
 
-      const heroPosition = Hero_ref.current?.offsetTop || 0;
-      const aboutPosition = About_ref.current?.offsetTop || 0;
-      const servicesPosition = Services_ref.current?.offsetTop || 0;
-      const whyChooseUsPosition = WhyChooseUs_ref.current?.offsetTop || 0;
-      const testimonialsPosition = Testimonials_ref.current?.offsetTop || 0;
-      const callToActionPosition = CallToAction_ref.current?.offsetTop || 0;
-      const contactPosition = Contact_ref.current?.offsetTop || 0;
+            const positions = [
+              { id: "hero", top: Hero_ref.current?.offsetTop || 0 },
+              { id: "about", top: About_ref.current?.offsetTop || 0 },
+              { id: "services", top: Services_ref.current?.offsetTop || 0 },
+              { id: "whychooseus", top: WhyChooseUs_ref.current?.offsetTop || 0 },
+              { id: "testimonials", top: Testimonials_ref.current?.offsetTop || 0 },
+              { id: "calltoaction", top: CallToAction_ref.current?.offsetTop || 0 },
+              { id: "contact", top: Contact_ref.current?.offsetTop || 0 },
+            ];
 
-      if (scrollPosition < aboutPosition) {
-        setActiveSection("hero");
-      } else if (scrollPosition < servicesPosition) {
-        setActiveSection("about");
-      } else if (scrollPosition < whyChooseUsPosition) {
-        setActiveSection("services");
-      } else if (scrollPosition < testimonialsPosition) {
-        setActiveSection("whychooseus");
-      } else if (scrollPosition < callToActionPosition) {
-        setActiveSection("testimonials");
-      } else if (scrollPosition < contactPosition) {
-        setActiveSection("calltoaction");
-      } else {
-        setActiveSection("contact");
+            // Find last section above scroll
+            const active = positions.reduce(
+              (acc, sec) => (scrollPosition >= sec.top ? sec.id : acc),
+              "hero"
+            );
+
+            setActiveSection(active);
+          }
+          ticking = false;
+        });
+        ticking = true;
       }
     };
 
-    // Use passive scroll listener for better performance
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isScrolling]);
@@ -77,7 +81,7 @@ function App() {
     <>
       {/* Fixed Navbar */}
       <div className="top-0 w-full h-max-10 fixed z-50">
-        <Nav
+        <MemoizedNav
           Hero_ref={Hero_ref}
           About_ref={About_ref}
           Services_ref={Services_ref}
@@ -89,74 +93,81 @@ function App() {
 
       {/* Sections */}
       <div ref={Hero_ref}>
-        <Hero Services_ref={Services_ref} BookNow_ref={Contact_ref} scrollToSection={scrollToSection} />
+        <Hero
+          Services_ref={Services_ref}
+          BookNow_ref={Contact_ref}
+          scrollToSection={scrollToSection}
+        />
       </div>
 
-      <div ref={About_ref}>
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          viewport={{ once: true }}
-        >
-          <AboutUs />
-        </motion.div>
-      </div>
+      {/* ✅ LazyMotion wraps all animated sections */}
+      <LazyMotion features={domAnimation}>
+        <div ref={About_ref}>
+          <m.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            viewport={{ once: true }}
+          >
+            <AboutUs />
+          </m.div>
+        </div>
 
-      <div ref={Services_ref}>
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          viewport={{ once: true }}
-        >
-          <Services />
-        </motion.div>
-      </div>
+        <div ref={Services_ref}>
+          <m.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            viewport={{ once: true }}
+          >
+            <Services />
+          </m.div>
+        </div>
 
-      <div ref={WhyChooseUs_ref}>
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          viewport={{ once: true }}
-        >
-          <WhyChooseUs />
-        </motion.div>
-      </div>
+        <div ref={WhyChooseUs_ref}>
+          <m.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            viewport={{ once: true }}
+          >
+            <WhyChooseUs />
+          </m.div>
+        </div>
 
-      <div ref={Testimonials_ref}>
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          viewport={{ once: true }}
-        >
-          <Testimonials />
-        </motion.div>
-      </div>
+        <div ref={Testimonials_ref}>
+          <m.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            viewport={{ once: true }}
+          >
+            <Testimonials />
+          </m.div>
+        </div>
 
-      <div ref={CallToAction_ref}>
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          viewport={{ once: true }}
-        >
-          <CallToAction />
-        </motion.div>
-      </div>
+        <div ref={CallToAction_ref}>
+          <m.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            viewport={{ once: true }}
+          >
+            <CallToAction />
+          </m.div>
+        </div>
 
-      <div ref={Contact_ref}>
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          viewport={{ once: true }}
-        >
-          <ContactSection />
-        </motion.div>
-      </div>
+        <div ref={Contact_ref}>
+          <m.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            viewport={{ once: true }}
+          >
+            <ContactSection />
+          </m.div>
+        </div>
+      </LazyMotion>
     </>
   );
 }
