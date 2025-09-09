@@ -43,20 +43,26 @@ const useMobileDetect = () => {
 };
 
 // LazyImage component for optimized image loading
-const LazyImage = ({ src, alt, className }) => {
+const LazyImage = ({ src, alt, className, width, height }) => {
   const [isLoaded, setIsLoaded] = useState(false);
 
   return (
     <>
       {!isLoaded && (
-        <div className={`bg-gray-200 animate-pulse ${className}`}></div>
+        <div 
+          className={`bg-gray-200 animate-pulse ${className}`}
+          style={{ width, height }}
+        ></div>
       )}
       <img
         src={src}
         alt={alt}
         className={`${className} ${isLoaded ? 'block' : 'hidden'}`}
         loading="lazy"
+        width={width}
+        height={height}
         onLoad={() => setIsLoaded(true)}
+        decoding="async"
       />
     </>
   );
@@ -71,6 +77,20 @@ const MemoizedWhyChooseUs = memo(WhyChooseUs);
 const MemoizedTestimonials = memo(Testimonials);
 const MemoizedCallToAction = memo(CallToAction);
 const MemoizedContactSection = memo(ContactSection);
+
+// Throttle function to limit how often a function can be called
+function throttle(func, limit) {
+  let inThrottle;
+  return function() {
+    const args = arguments;
+    const context = this;
+    if (!inThrottle) {
+      func.apply(context, args);
+      inThrottle = true;
+      setTimeout(() => inThrottle = false, limit);
+    }
+  }
+}
 
 function App() {
   // Create refs for all sections
@@ -87,6 +107,7 @@ function App() {
   const scrollTimeout = useRef(null);
   const [isMounted, setIsMounted] = useState(false);
   const isMobile = useMobileDetect();
+  const rafId = useRef(null);
 
   // Section configuration for easier management
   const sectionsConfig = [
@@ -102,7 +123,18 @@ function App() {
   // Set mounted state after initial render
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    
+    // Add a class to body for mobile optimization
+    if (isMobile) {
+      document.body.classList.add('is-mobile');
+    }
+    
+    return () => {
+      if (rafId.current) {
+        cancelAnimationFrame(rafId.current);
+      }
+    };
+  }, [isMobile]);
 
   // Memoized smooth scroll function
   const scrollToSection = useCallback((sectionRef) => {
@@ -135,44 +167,27 @@ function App() {
   useEffect(() => {
     if (!isMounted) return;
 
-    let ticking = false;
-    let lastCallTime = 0;
-
-    const handleScroll = () => {
-      const currentTime = Date.now();
-      // Use more aggressive throttling on mobile
-      const scrollThrottle = isMobile ? 200 : 100;
+    const handleScroll = throttle(() => {
+      if (isScrolling) return;
       
-      // Throttle scroll events
-      if (currentTime - lastCallTime < scrollThrottle) {
-        return;
-      }
-      lastCallTime = currentTime;
+      const scrollPosition = window.scrollY + 100;
       
-      if (!ticking && !isScrolling) {
-        window.requestAnimationFrame(() => {
-          const scrollPosition = window.scrollY + 100;
-          
-          // Find the current active section
-          let currentActive = "hero";
-          let minDistance = Infinity;
-          
-          sectionsConfig.forEach(({ id, ref }) => {
-            if (ref.current) {
-              const distance = Math.abs(ref.current.offsetTop - scrollPosition);
-              if (distance < minDistance) {
-                minDistance = distance;
-                currentActive = id;
-              }
-            }
-          });
-          
-          setActiveSection(currentActive);
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
+      // Find the current active section
+      let currentActive = "hero";
+      let minDistance = Infinity;
+      
+      sectionsConfig.forEach(({ id, ref }) => {
+        if (ref.current) {
+          const distance = Math.abs(ref.current.offsetTop - scrollPosition);
+          if (distance < minDistance) {
+            minDistance = distance;
+            currentActive = id;
+          }
+        }
+      });
+      
+      setActiveSection(currentActive);
+    }, isMobile ? 250 : 100); // More aggressive throttling on mobile
 
     // Use passive scroll listener for better performance
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -195,17 +210,17 @@ function App() {
     );
   }
 
-  // Simplified animations for mobile
+  // Simplified animations for mobile - disable on low-end devices
   const mobileAnimationProps = isMobile ? {
     initial: { opacity: 0 },
     whileInView: { opacity: 1 },
-    transition: { duration: 0.5 },
-    viewport: { once: true, margin: "-50px" }
+    transition: { duration: 0.3 },
+    viewport: { once: true, margin: "0px" }
   } : {
-    initial: { opacity: 0, y: 40 },
+    initial: { opacity: 0, y: 20 },
     whileInView: { opacity: 1, y: 0 },
-    transition: { duration: 0.7, ease: "easeOut" },
-    viewport: { once: true, margin: "-100px" }
+    transition: { duration: 0.5, ease: "easeOut" },
+    viewport: { once: true, margin: "-50px" }
   };
 
   return (
@@ -230,6 +245,7 @@ function App() {
           BookNow_ref={contact_ref}
           scrollToSection={scrollToSection}
           isMobile={isMobile}
+          LazyImage={LazyImage}
         />
       </div>
 
