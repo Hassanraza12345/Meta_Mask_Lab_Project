@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback, memo } from "react";
 import { LazyMotion, domAnimation, m } from "framer-motion";
+import AiMarketing from "./components/AiMarketing/AiMarketing";
 
 // Import components with React.lazy for code splitting
 const Nav = React.lazy(() => import("./components/Nav/Nav"));
@@ -196,6 +197,16 @@ function App() {
             viewport={{ once: true, margin: "-100px" }}
           >
             <MemoizedWhyChooseUs />
+          </m.div>
+        </div>
+        <div>
+          <m.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            viewport={{ once: true, margin: "-100px" }}
+          >
+            <AiMarketing />
           </m.div>
         </div>
 
